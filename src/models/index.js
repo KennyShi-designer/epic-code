@@ -1,9 +1,11 @@
+import Avatar from 'antd/lib/avatar/avatar';
 import AV, { Query, User } from 'leancloud-storage';
 
+
 AV.init({
-    appId: "U4yNiJ9kmIWKHEes1tVK9bM5-gzGzoHsz",
-    appKey: "sSPreiDEq0acnA0kBrjy2q0n",
-    serverURL: "https://u4ynij9k.lc-cn-n1-shared.com"
+    appId: "ydu3crxukCpGF09N5iY7iPJW-gzGzoHsz",
+    appKey: "5xvY91aepVHJAQ9uFmpViHRU",
+    serverURL: "https://ydu3crxu.lc-cn-n1-shared.com"
 });
 
 const Auth = {
@@ -11,19 +13,23 @@ const Auth = {
         let user = new User();
         user.setUsername(username);
         user.setPassword(password);
-
         return new Promise((resolve, reject) => {
             user.signUp().then(loginedUser => resolve(loginedUser), error => reject(error))
-        })
+        });
     },
+
     login(username, password) {
+        console.log('------')
+        console.log(username, password)
         return new Promise((resolve, reject) => {
-            User.logIn(username, password).then(loginedUser => resolve(loginedUser), error => reject(error))
-        })
+            User.logIn(username, password).then(loginedUser => resolve(loginedUser), error => reject(error));
+        });
     },
+
     logout() {
         User.logOut();
     },
+
     getCurrentUser() {
         return User.current();
     }
@@ -34,17 +40,29 @@ const Uploader = {
     add(file, filename) {
         const item = new AV.Object('Image');
         const avFile = new AV.File(filename, file);
-
         item.set('filename', filename);
         item.set('owner', AV.User.current());
         item.set('url', avFile);
-
         return new Promise((resolve, reject) => {
-            item.save().then(serverFile => resolve(serverFile),
-                error => reject(error));
+            item.save().then(serverFile => resolve(serverFile), error => reject(error));
+        });
+    },
+
+    find({page=0, limit=10}) {
+        const query = new AV.Query('Image');
+        query.include('owner');
+        query.limit(limit);
+        query.skip(page*limit);
+        query.descending('createdAt');
+        query.equalTo('owner', AV.User.current());
+        return new Promise((resolve, reject) => {
+            query.find()
+                .then(results => resolve(results))
+                .catch(error => reject(error))
         });
     }
 }
+
 
 export {
     Auth,
